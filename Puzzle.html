@@ -3,37 +3,89 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>יוצר פאזלים</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --text-color: #ffffff;
-            --accent-color: #3498db;
-            --container-bg: #2d2d2d;
-            --border-color: #404040;
-            --glow-color: rgba(52, 152, 219, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-bg-hover: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-border-hover: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --glass-blur: blur(20px);
+            --text-color: #e2e8f0;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --accent-start: #667eea;
+            --accent-end: #764ba2;
+            --accent-glow: rgba(102, 126, 234, 0.4);
+            --success-color: #48bb78;
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
+            color: var(--text-color);
+            background: #0f0c29;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow-x: hidden;
         }
 
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 14px 30px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+        }
+
+        .app-header svg {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .app-header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
         .main-container {
             display: grid;
-            grid-template-columns: minmax(280px, 380px) 1fr;
+            grid-template-columns: minmax(280px, 360px) 1fr;
             gap: 20px;
-            max-width: 1400px;
+            max-width: 1500px;
             margin: 0 auto;
+            padding: 20px;
+            min-height: calc(100vh - 65px);
         }
 
         @media (max-width: 768px) {
@@ -42,18 +94,28 @@
             }
         }
 
+        /* ===== GLASS PANELS ===== */
         .settings-panel {
-            background: var(--container-bg);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--glass-shadow);
+            height: fit-content;
+            position: sticky;
+            top: 85px;
         }
 
         .preview-panel {
-            background: var(--container-bg);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--glass-shadow);
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -61,78 +123,169 @@
 
         .section {
             margin-bottom: 20px;
-            padding: 15px;
-            background: var(--bg-color);
-            border-radius: 10px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--border-radius-sm);
         }
 
-        h2,
-        h3 {
-            color: var(--accent-color);
-            margin-bottom: 15px;
+        .section:last-child {
+            margin-bottom: 0;
         }
 
-        .input-group {
-            margin-bottom: 15px;
+        h2, h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
+        /* ===== FILE UPLOAD DROP ZONE ===== */
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius-sm);
+            padding: 28px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 16px;
+            position: relative;
         }
 
-        input[type="number"],
-        input[type="file"] {
-            width: 100%;
-            padding: 8px;
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--accent-start);
+            background: rgba(102, 126, 234, 0.08);
+            transform: scale(1.01);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .upload-zone svg {
+            width: 40px;
+            height: 40px;
             margin-bottom: 10px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
+            opacity: 0.5;
+            fill: var(--text-color);
+        }
+
+        .upload-zone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .upload-zone .upload-filename {
+            color: var(--success-color);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .upload-zone .upload-filename.visible {
+            display: flex;
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* ===== RADIO CARDS ===== */
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .radio-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .radio-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .radio-card .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 8px;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+
+        .radio-card .card-body svg {
+            width: 28px;
+            height: 28px;
+            opacity: 0.5;
+            fill: var(--text-color);
+            transition: all 0.25s ease;
+        }
+
+        .radio-card .card-body span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: color 0.25s ease;
+        }
+
+        .radio-card input:checked + .card-body {
+            border-color: var(--accent-start);
+            background: rgba(102, 126, 234, 0.12);
+            box-shadow: 0 0 16px rgba(102, 126, 234, 0.2);
+        }
+
+        .radio-card input:checked + .card-body svg {
+            opacity: 1;
+            fill: var(--accent-start);
+        }
+
+        .radio-card input:checked + .card-body span {
             color: var(--text-color);
         }
 
-        button {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        button:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        }
-
+        /* ===== TOGGLE SWITCH ===== */
         .mode-toggle {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            /* שינוי ליישור ימין */
-            gap: 10px;
-            margin: 15px 0;
-            padding: 10px;
-            background: var(--bg-color);
-            border-radius: 8px;
+            gap: 12px;
+            margin: 16px 0;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .mode-toggle span {
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
         .switch {
             position: relative;
             display: inline-block;
-            width: 60px;
-            height: 34px;
+            width: 52px;
+            height: 28px;
             margin-left: 10px;
-            /* שינוי מ-margin-right ל-margin-left */
+            flex-shrink: 0;
         }
-
-
 
         .switch input {
             opacity: 0;
@@ -147,38 +300,114 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: 0.35s;
+            border-radius: 28px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
             background-color: white;
-            transition: .4s;
+            transition: 0.35s;
             border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
-        input:checked+.slider {
-            background-color: var(--accent-color);
+        input:checked + .slider {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
         }
 
-        input:checked+.slider:before {
-            transform: translateX(26px);
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
 
+        /* ===== NUMBER INPUTS ===== */
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            color: var(--text-color);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        /* ===== BUTTONS ===== */
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass-bg-hover);
+            border-color: var(--glass-border-hover);
+            transform: translateY(-1px);
+        }
+
+        /* ===== PREVIEW ===== */
         .preview-container {
             width: 100%;
             aspect-ratio: 16/9;
-            background: var(--bg-color);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-sm);
             overflow: hidden;
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .preview-image {
@@ -187,13 +416,26 @@
             object-fit: contain;
         }
 
+        /* ===== CANVAS / GAME AREA ===== */
+        .canvas-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
         .canvas-container {
             position: relative;
             width: 100%;
             flex-grow: 1;
-            background: var(--bg-color);
-            border-radius: 10px;
+            min-height: 400px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: var(--border-radius-sm);
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+            /* Subtle dot pattern */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
         #puzzleCanvas {
@@ -201,6 +443,192 @@
             height: 100%;
         }
 
+        /* ===== GAME TIMER ===== */
+        .game-timer {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(15, 12, 41, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 16px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .game-timer .timer-display {
+            font-family: 'Courier New', monospace;
+            font-size: 22px;
+            font-weight: bold;
+            color: #e2e8f0;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .game-timer .timer-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .game-timer .timer-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            margin-bottom: 0;
+        }
+
+        .game-timer .timer-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-timer .timer-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #e2e8f0;
+        }
+
+        #startPauseBtn {
+            margin-bottom: 0;
+        }
+
+        #resetBtn {
+            margin-bottom: 0;
+        }
+
+        /* ===== PUZZLE COUNTER — Ring Progress ===== */
+        .puzzle-counter {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            transition: all 0.4s ease;
+        }
+
+        .counter-ring-wrapper {
+            position: relative;
+            width: 90px;
+            height: 90px;
+        }
+
+        .counter-ring-wrapper svg {
+            transform: rotate(-90deg);
+        }
+
+        .counter-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-width: 6;
+        }
+
+        .counter-ring-fg {
+            fill: none;
+            stroke: url(#counterGradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .counter-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .counter-number {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .counter-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .puzzle-counter.pulse {
+            animation: counterPulse 0.3s ease;
+        }
+
+        @keyframes counterPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== STATUS TOAST ===== */
+        #status {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 12, 41, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: all 0.35s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 3000;
+        }
+
+        #status.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== SHUFFLE FAB ===== */
+        .shuffle-free-pieces {
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            width: 56px !important;
+            height: 56px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end)) !important;
+            color: white !important;
+            border: none !important;
+            cursor: pointer !important;
+            z-index: 1000 !important;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.3s ease !important;
+            font-size: 1.4rem !important;
+            margin-bottom: 0 !important;
+        }
+
+        .shuffle-free-pieces:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.55) !important;
+        }
+
+        /* ===== PIECE EFFECTS ===== */
         .piece-container {
             position: absolute;
             cursor: grab;
@@ -212,21 +640,13 @@
             cursor: grabbing;
             z-index: 1000;
             animation: piece-glow 2s infinite;
-            filter: drop-shadow(0 0 10px var(--glow-color));
+            filter: drop-shadow(0 0 10px var(--accent-glow));
         }
 
         @keyframes piece-glow {
-            0% {
-                filter: drop-shadow(0 0 10px var(--glow-color));
-            }
-
-            50% {
-                filter: drop-shadow(0 0 20px var(--glow-color)) brightness(1.2);
-            }
-
-            100% {
-                filter: drop-shadow(0 0 10px var(--glow-color));
-            }
+            0% { filter: drop-shadow(0 0 10px var(--accent-glow)); }
+            50% { filter: drop-shadow(0 0 20px var(--accent-glow)) brightness(1.2); }
+            100% { filter: drop-shadow(0 0 10px var(--accent-glow)); }
         }
 
         .pieces-grid {
@@ -234,8 +654,8 @@
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
             padding: 10px;
-            background: var(--bg-color);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-sm);
             height: 150px;
             overflow-y: auto;
         }
@@ -247,138 +667,137 @@
             transition: transform 0.2s ease;
         }
 
-        #status {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(52, 152, 219, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        /* ===== COMPLETION POPUP — Glass ===== */
+        @keyframes messagePopIn {
+            0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
-        #status.show {
-            opacity: 1;
+        @keyframes messagePopOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
         }
-		
-		.puzzle-counter {
-			position: fixed;
-			top: 20px;
-			right: 20px;
-			background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
-			color: white;
-			padding: 15px 25px;
-			border-radius: 15px;
-			font-size: 18px;
-			font-weight: bold;
-			text-align: center;
-			transition: all 0.3s ease;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-			z-index: 1000;
-			direction: rtl;
-		}
 
-		.puzzle-counter.pulse {
-			animation: counterPulse 0.3s ease;
-		}
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
 
-		@keyframes counterPulse {
-			0% { transform: scale(1); }
-			50% { transform: scale(1.1); }
-			100% { transform: scale(1); }
-		}
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-	
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
 
-		/* סגנון לשעון המשחק */
-		.game-timer {
-		  position: absolute;
-		  //top: 20px;
-		  //right: 20px;
-		  background: rgba(30, 30, 30, 0.85);
-		  padding: 10px 15px;
-		  border-radius: 8px;
-		  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-		  backdrop-filter: blur(5px);
-		  display: flex;
-		  flex-direction: row; /* שינוי לשורה אופקית */
-		  align-items: center;
-		  gap: 10px;
-		  z-index: 1000;
-		  border: 1px solid rgba(255, 255, 255, 0.1);
-		}
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
 
-		.game-timer .timer-display {
-		  font-family: monospace;
-		  font-size: 24px;
-		  font-weight: bold;
-		  color: #e2e8f0;
-		  margin: 0;
-		}
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 10px 16px;
+            }
 
-		.game-timer .timer-controls {
-		  display: flex;
-		  gap: 8px;
-		}
+            .app-header h1 {
+                font-size: 1.1rem;
+            }
 
-		.game-timer .timer-btn {
-		  background: rgba(255, 255, 255, 0.1);
-		  border: none;
-		  cursor: pointer;
-		  padding: 6px;
-		  border-radius: 50%;
-		  transition: all 0.2s ease;
-		  display: flex;
-		  align-items: center;
-		  justify-content: center;
-		}
+            .main-container {
+                padding: 12px;
+                gap: 12px;
+            }
 
-		.game-timer .timer-btn:hover {
-		  background: rgba(255, 255, 255, 0.2);
-		}
+            .settings-panel {
+                position: static;
+                padding: 16px;
+            }
 
-		.game-timer .timer-btn svg {
-		  width: 20px;
-		  height: 20px;
-		  fill: #e2e8f0;
-		}
-		
-		#startPauseBtn {
-			margin-bottom: 0px;
-		}
+            .preview-panel {
+                padding: 16px;
+            }
 
-		#resetBtn {
-			margin-bottom: 0px;
-		}
+            .radio-group {
+                grid-template-columns: 1fr 1fr;
+            }
 
+            .canvas-container {
+                min-height: 300px;
+            }
+
+            .puzzle-counter {
+                top: 70px;
+                right: 10px;
+            }
+
+            .counter-ring-wrapper {
+                width: 70px;
+                height: 70px;
+            }
+
+            .counter-number {
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- HEADER -->
+    <header class="app-header">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z"
+                  fill="url(#headerIconGrad)"/>
+            <defs>
+                <linearGradient id="headerIconGrad" x1="2" y1="1" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#667eea"/>
+                    <stop offset="1" stop-color="#764ba2"/>
+                </linearGradient>
+            </defs>
+        </svg>
+        <h1>יוצר פאזלים</h1>
+    </header>
+
     <div class="main-container">
         <div class="settings-panel">
             <div class="section">
                 <h2>הגדרות פאזל</h2>
-                <div class="input-group">
-                    <label>העלאת תמונה:</label>
+
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="uploadZone">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                    </svg>
+                    <p>העלה תמונה או גרור לכאן</p>
+                    <div class="upload-filename" id="uploadFilename">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="#48bb78"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                        <span id="fileNameText"></span>
+                    </div>
                     <input type="file" id="imageUpload" accept="image/*" />
                 </div>
 
+                <!-- Puzzle Type Cards -->
                 <div class="radio-group">
-                    <label>
+                    <label class="radio-card">
                         <input type="radio" name="puzzleType" value="simple" checked>
-                        פאזל פשוט (מלבנים)
+                        <div class="card-body">
+                            <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/></svg>
+                            <span>פאזל פשוט</span>
+                        </div>
                     </label>
-                    <label>
+                    <label class="radio-card">
                         <input type="radio" name="puzzleType" value="classic">
-                        פאזל קלאסי (צורות מסורתיות)
+                        <div class="card-body">
+                            <svg viewBox="0 0 24 24"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-2 .9-2 2v3.8h1.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7s2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg>
+                            <span>פאזל קלאסי</span>
+                        </div>
                     </label>
                 </div>
 
+                <!-- Guided Mode Toggle -->
                 <div class="mode-toggle">
                     <label class="switch">
                         <input type="checkbox" id="modeToggle" checked>
@@ -387,6 +806,7 @@
                     <span>מצב מודרך (הצמדה אוטומטית)</span>
                 </div>
 
+                <!-- Row/Col Inputs -->
                 <div class="input-group">
                     <label>מספר שורות:</label>
                     <input type="number" id="rows" value="3" min="1" max="20">
@@ -397,8 +817,9 @@
                     <input type="number" id="cols" value="4" min="1" max="20">
                 </div>
 
-                <button onclick="handleCreatePuzzle()">צור פאזל</button>
-                <button onclick="handleDownloadPieces()">הורד חלקים</button>
+                <!-- Buttons -->
+                <button class="btn-primary" onclick="handleCreatePuzzle()">צור פאזל</button>
+                <button class="btn-secondary" onclick="handleDownloadPieces()">הורד חלקים</button>
             </div>
         </div>
 
@@ -413,35 +834,41 @@
             <div class="section canvas-section">
                 <h2>אזור המשחק</h2>
                 <div class="canvas-container">
-					<div class="game-timer">
-						<div class="timer-display" id="timerDisplay">00:00:00</div>
-						
-						<div class="timer-controls">
-						  <button class="timer-btn play-btn" id="startPauseBtn" title="התחל/השהה">
-							<svg viewBox="0 0 24 24" class="play-icon">
-							  <path d="M8 5v14l11-7z"/>
-							</svg>
-							<svg viewBox="0 0 24 24" class="pause-icon" style="display: none;">
-							  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-							</svg>
-						  </button>
-						  
-						  <button class="timer-btn reset-btn" id="resetBtn" title="אפס">
-							<svg viewBox="0 0 24 24">
-							  <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-							</svg>
-						  </button>
-						</div>
-					  </div>
-
+                    <div class="game-timer">
+                        <div class="timer-display" id="timerDisplay">00:00:00</div>
+                        <div class="timer-controls">
+                            <button class="timer-btn play-btn" id="startPauseBtn" title="התחל/השהה">
+                                <svg viewBox="0 0 24 24" class="play-icon">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                                <svg viewBox="0 0 24 24" class="pause-icon" style="display: none;">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                                </svg>
+                            </button>
+                            <button class="timer-btn reset-btn" id="resetBtn" title="אפס">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     <canvas id="puzzleCanvas"></canvas>
                 </div>
             </div>
         </div>
-		
-		<!-- הוספת המונה -->
-		<div class="puzzle-counter"></div>
-	
+
+        <!-- Counter (will be replaced dynamically) -->
+        <div class="puzzle-counter"></div>
+
+        <!-- SVG gradient definition for counter ring -->
+        <svg width="0" height="0" style="position:absolute">
+            <defs>
+                <linearGradient id="counterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#667eea"/>
+                    <stop offset="100%" stop-color="#764ba2"/>
+                </linearGradient>
+            </defs>
+        </svg>
     </div>
 
     <div id="status"></div>
@@ -477,7 +904,7 @@
 		let currentMaxZIndex = 1000;
 
         document.addEventListener('DOMContentLoaded', initialize);
-		
+
 		const timerDisplay = document.getElementById('timerDisplay');
 		const startPauseBtn = document.getElementById('startPauseBtn');
 		const resetBtn = document.getElementById('resetBtn');
@@ -528,19 +955,18 @@
 
 		function initializePuzzleCounter(rows, cols) {
 			totalPiecesCount = rows * cols;
-		
+
 			// הסרת המונה הקודם אם קיים
 			const existingCounter = document.querySelector('.puzzle-counter');
 			if (existingCounter) {
 				existingCounter.remove();
 			}
-			
-			// יצירת מונה חדש
+
+			// יצירת מונה חדש — ring progress
 			puzzleCounter = document.createElement('div');
 			puzzleCounter.className = 'puzzle-counter';
 			document.body.appendChild(puzzleCounter);
-			
-			// אתחול מחדש של המונה עם הערך ההתחלתי
+
 			puzzleCounter.style.transform = 'scale(1)';
 			puzzleCounter.style.opacity = '1';
 			updatePuzzleCounter(totalPiecesCount);
@@ -549,22 +975,29 @@
 		function updatePuzzleCounter(remainingPieces) {
 			if (!puzzleCounter) return;
 
+			const progress = (totalPiecesCount - remainingPieces) / totalPiecesCount;
+			const circumference = 2 * Math.PI * 38; // r=38
+			const dashOffset = circumference * (1 - progress);
+
 			puzzleCounter.innerHTML = `
-				<div style="font-size: 24px; margin-bottom: 5px;">${remainingPieces}</div>
-				<div style="font-size: 14px;">חלקים נותרו</div>
+				<div class="counter-ring-wrapper">
+					<svg width="90" height="90" viewBox="0 0 90 90">
+						<circle class="counter-ring-bg" cx="45" cy="45" r="38"/>
+						<circle class="counter-ring-fg" cx="45" cy="45" r="38"
+							stroke-dasharray="${circumference}"
+							stroke-dashoffset="${dashOffset}"
+							stroke="url(#counterGradient)"/>
+					</svg>
+					<div class="counter-text">
+						<div class="counter-number">${remainingPieces}</div>
+						<div class="counter-label">נותרו</div>
+					</div>
+				</div>
 			`;
 
 			// הוספת אפקט הבהוב
 			puzzleCounter.classList.add('pulse');
 			setTimeout(() => puzzleCounter.classList.remove('pulse'), 300);
-
-			// שינוי צבע לפי התקדמות
-			const progress = (totalPiecesCount - remainingPieces) / totalPiecesCount;
-			const hue = progress * 120;
-			puzzleCounter.style.background = `linear-gradient(145deg, 
-				hsla(${hue}, 70%, 30%, 0.9),
-				hsla(${hue}, 70%, 40%, 0.9)
-			)`;
 
 			// הסתרה בסיום
 			if (remainingPieces === 0) {
@@ -577,13 +1010,13 @@
 
 		function isNearCorrectPosition(piece, pos) {
 			if (!pos) return false;
-			
+
 			const distance = Math.sqrt(
-				Math.pow(piece.x - pos.x, 2) + 
+				Math.pow(piece.x - pos.x, 2) +
 				Math.pow(piece.y - pos.y, 2)
 			);
 
-			return distance < snapDistance; // snapDistance צריך להיות מוגדר במקום מתאים
+			return distance < snapDistance;
 		}
 
 
@@ -596,6 +1029,25 @@
             document.getElementById('modeToggle').addEventListener('change', (e) => {
                 isGuidedMode = e.target.checked;
                 showStatus(isGuidedMode ? 'מצב מודרך מופעל' : 'מצב חופשי מופעל');
+            });
+
+            // Upload zone drag-and-drop
+            const uploadZone = document.getElementById('uploadZone');
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    document.getElementById('imageUpload').files = files;
+                    handleImageUpload({ target: { files: files } });
+                }
             });
 
             window.addEventListener('resize', updateCanvasSize);
@@ -616,14 +1068,12 @@
 		}
 
 		function getEventCoordinates(e) {
-			// Check if it's a touch event
 			if (e.touches && e.touches.length > 0) {
 				return {
 					x: e.touches[0].clientX,
 					y: e.touches[0].clientY
 				};
 			}
-			// If not, use mouse event coordinates
 			return {
 				x: e.clientX,
 				y: e.clientY
@@ -631,13 +1081,12 @@
 		}
 
         function startDragging(e) {
-			e.preventDefault(); // Prevents unintended behavior on touch devices
+			e.preventDefault();
 			const rect = canvas.getBoundingClientRect();
 			const coords = getEventCoordinates(e);
 			const x = coords.x - rect.left;
 			const y = coords.y - rect.top;
 
-			// Check if a piece was clicked/touched
 			for (let i = puzzlePieces.length - 1; i >= 0; i--) {
 				const piece = puzzlePieces[i];
 				if (isPointInPiece(x, y, piece)) {
@@ -647,7 +1096,6 @@
 					offsetY = y - piece.y;
 					piece.isDragging = true;
 
-					// Bring the selected piece to the front
 					puzzlePieces.splice(i, 1);
 					puzzlePieces.push(piece);
 
@@ -659,7 +1107,7 @@
 
         function dragPiece(e) {
 			if (!isDragging || !currentPiece) return;
-			e.preventDefault(); // Prevent scrolling on touch devices
+			e.preventDefault();
 
 			const rect = canvas.getBoundingClientRect();
 			const coords = getEventCoordinates(e);
@@ -670,19 +1118,17 @@
 			currentPiece.y = y - offsetY;
 
 			if (isGuidedMode) {
-				// Check proximity to correct position
 				const correctPos = piecePositions[currentPiece.index];
 				const distance = Math.hypot(
 					currentPiece.x - correctPos.x,
 					currentPiece.y - correctPos.y
 				);
 
-				if (distance < 30) { // Snap distance
+				if (distance < 30) {
 					currentPiece.x = correctPos.x;
 					currentPiece.y = correctPos.y;
 					currentPiece.isPlaced = true;
 
-					// Update the counter
 					const placedPieces = puzzlePieces.filter(p => p.isPlaced).length;
 					const remaining = totalPiecesCount - placedPieces;
 					updatePuzzleCounter(remaining);
@@ -691,8 +1137,8 @@
 
 			drawPuzzle();
 		}
-				
-		
+
+
 
         function stopDragging() {
 			if (currentPiece) {
@@ -707,18 +1153,23 @@
 			drawPuzzle();
 		}
 
-        // פונקציית עזר לבדיקה אם נקודה נמצאת בתוך חלק
 		function isPointInPiece(x, y, piece) {
-			return x >= piece.x && 
-				   x <= piece.x + piece.width && 
-				   y >= piece.y && 
+			return x >= piece.x &&
+				   x <= piece.x + piece.width &&
+				   y >= piece.y &&
 				   y <= piece.y + piece.height;
 		}
 
-		
+
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            // Show filename in the upload zone
+            const filenameEl = document.getElementById('uploadFilename');
+            const fileNameText = document.getElementById('fileNameText');
+            fileNameText.textContent = file.name;
+            filenameEl.classList.add('visible');
 
             const reader = new FileReader();
             reader.onload = function (event) {
@@ -749,7 +1200,6 @@
             showStatus('הפאזל נוצר! גרור את החלקים למקומם');
         }
 
-        // ציור תצוגה מקדימה
         function drawPreview() {
             if (!originalImage) return;
 
@@ -768,18 +1218,14 @@
         }
 
         function createPuzzle(rows, cols, type) {
-            // איפוס
             puzzlePieces = [];
             piecePositions = [];
 			edgeTypes = null;
 
-			// איפוס המשתנה בתחילת פאזל חדש
 			isPuzzleCompleted = false;
-	
-			// הוספת אתחול המונה
+
 			initializePuzzleCounter(rows, cols);
-	
-            // חישוב גדלים
+
             const ratio = Math.min(
                 canvas.width / originalImage.width,
                 canvas.height / originalImage.height
@@ -791,18 +1237,14 @@
             const startX = (canvas.width - gameWidth) / 2;
             const startY = (canvas.height - gameHeight) / 2;
 
-            // יצירת החלקים
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
-                    // חישוב המיקום המקורי בתמונה
                     const srcX = col * (originalImage.width / cols);
                     const srcY = row * (originalImage.height / rows);
 
-                    // חישוב המיקום הסופי
                     const finalX = startX + (col * pieceWidth);
                     const finalY = startY + (row * pieceHeight);
 
-                    // שמירת המיקום הנכון
                     piecePositions.push({
                         x: finalX,
                         y: finalY,
@@ -810,7 +1252,6 @@
                         col: col
                     });
 
-                    // יצירת חלק חדש
                     const piece = {
                         index: row * cols + col,
                         srcX: srcX,
@@ -821,22 +1262,17 @@
                         isDragging: false
                     };
 
-                    // קביעת מיקום רנדומלי רק מסביב לתמונה המוצגת, תוך שמירה על החלקים בתוך המסגרת
                     let randomPosition = Math.random();
                     if (randomPosition < 0.25) {
-                        // מעל התמונה, לוודא שהחלק נשאר במסגרת הקנבס
                         piece.x = startX + Math.random() * (gameWidth - piece.width);
                         piece.y = Math.max(0, startY - piece.height - Math.random() * (startY - piece.height));
                     } else if (randomPosition < 0.5) {
-                        // מתחת לתמונה, לוודא שהחלק נשאר במסגרת הקנבס
                         piece.x = startX + Math.random() * (gameWidth - piece.width);
                         piece.y = Math.min(canvas.height - piece.height, startY + gameHeight + Math.random() * (canvas.height - (startY + gameHeight) - piece.height));
                     } else if (randomPosition < 0.75) {
-                        // מצד שמאל של התמונה, לוודא שהחלק נשאר במסגרת הקנבס
                         piece.x = Math.max(0, startX - piece.width - Math.random() * (startX - piece.width));
                         piece.y = startY + Math.random() * (gameHeight - piece.height);
                     } else {
-                        // מצד ימין של התמונה, לוודא שהחלק נשאר במסגרת הקנבס
                         piece.x = Math.min(canvas.width - piece.width, startX + gameWidth + Math.random() * (canvas.width - (startX + gameWidth) - piece.width));
                         piece.y = startY + Math.random() * (gameHeight - piece.height);
                     }
@@ -851,23 +1287,20 @@
             }
 
 
-            // הוספת כפתור הפיזור
             addShuffleButton();
 
             drawPuzzle();
-			
+
 			toggleTimer();
         }
 
         function generateClassicEdges(row, col, rows, cols) {
-            // אתחול מערך החיבורים בתחילת פאזל חדש
             if (!edgeTypes) {
                 edgeTypes = Array(rows).fill().map(() => Array(cols).fill().map(() => ({})));
             }
 
             const edges = {};
 
-            // קביעת החיבורים באופן שמונע חיבורים כפולים
             if (row === 0) {
                 edges.top = 'none';
             } else {
@@ -892,33 +1325,29 @@
                 edges.right = ((row + col) % 2 === 0) ? 'tab' : 'blank';
             }
 
-            // שמירת החיבורים למען החלקים הבאים
             edgeTypes[row][col] = edges;
 
             return edges;
         }
 
         function drawPuzzle() {
-		
+
 			if (!originalImage) return;
-		
-			// ניקוי הקנבס
+
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			// חישוב היחס לתמונת הרקע
 			const ratio = Math.min(
 				canvas.width / originalImage.width,
 				canvas.height / originalImage.height
 			);
 
-			// ציור התמונה המקורית ברקע עם שקיפות
 			ctx.save();
-			ctx.globalAlpha = 0.1; // שקיפות של 10%
+			ctx.globalAlpha = 0.1;
 			const bgWidth = originalImage.width * ratio;
 			const bgHeight = originalImage.height * ratio;
 			const bgX = (canvas.width - bgWidth) / 2;
 			const bgY = (canvas.height - bgHeight) / 2;
-			
+
 			ctx.drawImage(
 				originalImage,
 				bgX, bgY,
@@ -927,15 +1356,12 @@
 			ctx.globalAlpha = 1;
 			ctx.restore();
 
-			// יצירת מערכים נפרדים לחלקים מורכבים וחופשיים
 			const placedPieces = puzzlePieces.filter(piece => piece.isPlaced);
 			const freePieces = puzzlePieces.filter(piece => !piece.isPlaced);
 
-			// רק שינוי אחד כאן - הפיכת הסדר של החלקים החופשיים
 			placedPieces.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-			freePieces.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));  // שינוי כיוון המיון
+			freePieces.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
 
-			// שאר הקוד נשאר בדיוק אותו דבר
 			if (placedPieces.length > 0) {
 				ctx.save();
 				ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
@@ -957,7 +1383,7 @@
 
 			freePieces.forEach(piece => {
 				ctx.save();
-				
+
 				if (!piece.isDragging) {
 					ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
 					ctx.shadowBlur = 10;
@@ -966,7 +1392,7 @@
 				}
 
 				if (piece.isDragging) {
-					ctx.shadowColor = 'rgba(52, 152, 219, 0.5)';
+					ctx.shadowColor = 'rgba(102, 126, 234, 0.5)';
 					ctx.shadowBlur = 20;
 					ctx.shadowOffsetX = 0;
 					ctx.shadowOffsetY = 0;
@@ -983,7 +1409,7 @@
 					const nearbyPiece = findNearbyPiece(piece);
 					if (nearbyPiece) {
 						ctx.save();
-						ctx.strokeStyle = '#3498db';
+						ctx.strokeStyle = '#667eea';
 						ctx.lineWidth = 3;
 						ctx.setLineDash([5, 5]);
 						ctx.strokeRect(
@@ -1000,7 +1426,7 @@
 			const draggingPiece = puzzlePieces.find(piece => piece.isDragging);
 			if (draggingPiece) {
 				ctx.save();
-				ctx.shadowColor = 'rgba(52, 152, 219, 0.5)';
+				ctx.shadowColor = 'rgba(102, 126, 234, 0.5)';
 				ctx.shadowBlur = 20;
 				ctx.shadowOffsetX = 0;
 				ctx.shadowOffsetY = 0;
@@ -1022,7 +1448,6 @@
 			}
 		}
 
-        // עדכון טיפול בלחיצה על חלק
         function handlePieceClick(event) {
             const piece = findClickedPiece(event);
             if (piece) {
@@ -1032,22 +1457,19 @@
             }
         }
 
-		// עדכון פונקציית מציאת החלק שנלחץ
 		function findClickedPiece(e) {
 			const rect = canvas.getBoundingClientRect();
 			const mouseX = e.clientX - rect.left;
 			const mouseY = e.clientY - rect.top;
 
-			 // סידור החלקים לפי z-index בסדר יורד
 			const sortedPieces = [...puzzlePieces]
-				.filter(piece => !piece.isPlaced)  // רק חלקים חופשיים
-				.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));  // מהגבוה לנמוך
+				.filter(piece => !piece.isPlaced)
+				.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
 
-			// מחזיר את החלק העליון ביותר שנלחץ
-			return sortedPieces.find(piece => 
-				mouseX >= piece.x && 
+			return sortedPieces.find(piece =>
+				mouseX >= piece.x &&
 				mouseX <= piece.x + piece.width &&
-				mouseY >= piece.y && 
+				mouseY >= piece.y &&
 				mouseY <= piece.y + piece.height
 			);
 		}
@@ -1063,10 +1485,9 @@
             const startX = (canvas.width - gameWidth) / 2;
             const startY = (canvas.height - gameHeight) / 2;
 
-            ctx.strokeStyle = 'rgba(52, 152, 219, 0.2)';
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.2)';
             ctx.lineWidth = 1;
 
-            // קווים אנכיים
             for (let i = 0; i <= gridSize.cols; i++) {
                 const x = startX + (i * gameWidth / gridSize.cols);
                 ctx.beginPath();
@@ -1075,7 +1496,6 @@
                 ctx.stroke();
             }
 
-            // קווים אופקיים
             for (let i = 0; i <= gridSize.rows; i++) {
                 const y = startY + (i * gameHeight / gridSize.rows);
                 ctx.beginPath();
@@ -1088,15 +1508,13 @@
         function drawPiece(piece) {
             ctx.save();
 
-            // אפקטים לחלק נגרר
             if (piece.isDragging) {
-                ctx.shadowColor = 'rgba(52, 152, 219, 0.5)';
+                ctx.shadowColor = 'rgba(102, 126, 234, 0.5)';
                 ctx.shadowBlur = 20;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
             }
 
-            // ציור החלק עצמו
             if (document.querySelector('input[name="puzzleType"]:checked').value === 'classic') {
                 drawClassicPiece(piece);
             } else {
@@ -1112,7 +1530,6 @@
             ctx.beginPath();
             ctx.moveTo(piece.x, piece.y);
 
-            // ציור הצד העליון
             if (piece.edges.top === 'tab') {
                 drawTab(ctx,
                     piece.x, piece.y,
@@ -1129,7 +1546,6 @@
                 ctx.lineTo(piece.x + piece.width, piece.y);
             }
 
-            // ציור הצד הימני
             if (piece.edges.right === 'tab') {
                 drawTab(ctx,
                     piece.x + piece.width, piece.y,
@@ -1146,7 +1562,6 @@
                 ctx.lineTo(piece.x + piece.width, piece.y + piece.height);
             }
 
-            // ציור הצד התחתון
             if (piece.edges.bottom === 'tab') {
                 drawTab(ctx,
                     piece.x + piece.width, piece.y + piece.height,
@@ -1163,7 +1578,6 @@
                 ctx.lineTo(piece.x, piece.y + piece.height);
             }
 
-            // ציור הצד השמאלי
             if (piece.edges.left === 'tab') {
                 drawTab(ctx,
                     piece.x, piece.y + piece.height,
@@ -1184,29 +1598,23 @@
             ctx.save();
             ctx.clip();
 
-            // חישוב גודל והיסט מתוקן לתמונה
-            const overlapRatio = 0.4; // הגדלת המרווח ל-40%
+            const overlapRatio = 0.4;
 
-            // חישוב מיקום וגודל בתמונה המקורית
             const sourceWidth = originalImage.width / gridSize.cols;
             const sourceHeight = originalImage.height / gridSize.rows;
             const extraSource = Math.max(sourceWidth, sourceHeight) * overlapRatio;
 
-            // חישוב מיקום בתמונה המקורית עם תוספת שוליים ובדיקות גבולות
             const srcX = Math.max(0, piece.srcX - extraSource);
             const srcY = Math.max(0, piece.srcY - extraSource);
             const srcWidth = Math.min(sourceWidth + extraSource * 2, originalImage.width - srcX);
             const srcHeight = Math.min(sourceHeight + extraSource * 2, originalImage.height - srcY);
 
-            // חישוב היסט יעד יחסי בהתאם להיסט המקור
             const destOffsetX = (piece.srcX - srcX) * (piece.width / sourceWidth);
             const destOffsetY = (piece.srcY - srcY) * (piece.height / sourceHeight);
 
-            // חישוב מימדי היעד הסופיים
             const destWidth = srcWidth * (piece.width / sourceWidth);
             const destHeight = srcHeight * (piece.height / sourceHeight);
 
-            // ציור התמונה עם כל ההתאמות
             ctx.drawImage(
                 originalImage,
                 srcX, srcY,
@@ -1217,8 +1625,7 @@
 
             ctx.restore();
 
-            // ציור המסגרת
-            ctx.strokeStyle = piece.isDragging ? '#3498db' : '#2c3e50';
+            ctx.strokeStyle = piece.isDragging ? '#667eea' : 'rgba(255,255,255,0.15)';
             ctx.lineWidth = piece.isDragging ? 3 : 1;
             ctx.stroke();
         }
@@ -1229,17 +1636,14 @@
             const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             const angle = Math.atan2(y2 - y1, x2 - x1);
 
-            // בליטה חלקה יותר עם שיפור פרופורציות
             const controlPoint = isTab ? size * 0.9 : -size * 0.9;
-            const depthRatio = 0.15;  // עומק החיתוך מותאם
+            const depthRatio = 0.15;
 
-            // נקודת ביניים ראשונה
             ctx.lineTo(
                 midX - Math.cos(angle) * (distance * depthRatio),
                 midY - Math.sin(angle) * (distance * depthRatio)
             );
 
-            // עקומה מרכזית
             ctx.quadraticCurveTo(
                 midX + Math.cos(angle + Math.PI / 2) * controlPoint,
                 midY + Math.sin(angle + Math.PI / 2) * controlPoint,
@@ -1247,18 +1651,15 @@
                 midY + Math.sin(angle) * (distance * depthRatio)
             );
 
-            // המשך לנקודה הסופית
             ctx.lineTo(x2, y2);
         }
 
 
         function determineEdgeType(row, col, edge) {
-            // אתחול המערך אם לא קיים
             if (!edgeTypes) {
                 edgeTypes = Array(gridSize.rows).fill().map(() => Array(gridSize.cols).fill().map(() => ({})));
             }
 
-            // אם כבר נקבע סוג החיבור, נשתמש בו
             if (edgeTypes[row]?.[col]?.[edge]) {
                 return edgeTypes[row][col][edge];
             }
@@ -1267,7 +1668,6 @@
             switch (edge) {
                 case 'top':
                     if (row === 0) return 'none';
-                    // הצד העליון יהיה הפוך מהצד התחתון של החלק שמעליו
                     type = edgeTypes[row - 1]?.[col]?.bottom ?
                         (edgeTypes[row - 1][col].bottom === 'tab' ? 'blank' : 'tab') :
                         ((row + col) % 2 === 0 ? 'tab' : 'blank');
@@ -1275,26 +1675,22 @@
 
                 case 'right':
                     if (col === gridSize.cols - 1) return 'none';
-                    // הצד הימני יקבע לפי המיקום
                     type = (row + col) % 2 === 0 ? 'tab' : 'blank';
                     break;
 
                 case 'bottom':
                     if (row === gridSize.rows - 1) return 'none';
-                    // הצד התחתון יקבע לפי המיקום
                     type = (row + col) % 2 !== 0 ? 'tab' : 'blank';
                     break;
 
                 case 'left':
                     if (col === 0) return 'none';
-                    // הצד השמאלי יהיה הפוך מהצד הימני של החלק משמאל
                     type = edgeTypes[row]?.[col - 1]?.right ?
                         (edgeTypes[row][col - 1].right === 'tab' ? 'blank' : 'tab') :
                         ((row + col) % 2 !== 0 ? 'tab' : 'blank');
                     break;
             }
 
-            // שמירת הסוג שנקבע
             if (!edgeTypes[row][col]) edgeTypes[row][col] = {};
             edgeTypes[row][col][edge] = type;
 
@@ -1308,17 +1704,14 @@
             const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             const angle = Math.atan2(y2 - y1, x2 - x1);
 
-            // שיפור צורת הבליטה
             const controlPoint = isTab ? size * 0.9 : -size * 0.9;
-            const depthRatio = 0.15; // הקטנת עומק החיבור
+            const depthRatio = 0.15;
 
-            // נקודת התחלה
             ctx.lineTo(
                 midX - Math.cos(angle) * (distance * depthRatio),
                 midY - Math.sin(angle) * (distance * depthRatio)
             );
 
-            // בליטה חלקה יותר
             ctx.quadraticCurveTo(
                 midX + Math.cos(angle + Math.PI / 2) * controlPoint,
                 midY + Math.sin(angle + Math.PI / 2) * controlPoint,
@@ -1337,7 +1730,6 @@
             ctx.rect(piece.x, piece.y, piece.width, piece.height);
             ctx.clip();
 
-            // ציור התמונה
             ctx.drawImage(
                 originalImage,
                 piece.srcX, piece.srcY,
@@ -1349,10 +1741,9 @@
 
             ctx.restore();
 
-            // הוספת מסגרת (מחוץ ל-clip)
             ctx.beginPath();
             ctx.rect(piece.x, piece.y, piece.width, piece.height);
-            ctx.strokeStyle = piece.isDragging ? '#3498db' : '#2c3e50';
+            ctx.strokeStyle = piece.isDragging ? '#667eea' : 'rgba(255,255,255,0.15)';
             ctx.lineWidth = piece.isDragging ? 3 : 1;
             ctx.stroke();
         }
@@ -1375,38 +1766,28 @@
             }
         }
 
-        // נוסיף כפתור לפיזור מחדש של החלקים החופשיים
         function addShuffleButton() {
+            // Remove existing shuffle button if any
+            const existing = document.querySelector('.shuffle-free-pieces');
+            if (existing) existing.remove();
+
             const button = document.createElement('button');
-            button.textContent = 'פזר חלקים חופשיים';
             button.className = 'shuffle-free-pieces';
-            button.style.cssText = `
-				position: fixed;
-				bottom: 20px;
-				right: 20px;
-				padding: 10px 20px;
-				background: #3498db;
-				color: white;
-				border: none;
-				border-radius: 5px;
-				cursor: pointer;
-				z-index: 1000;
-			`;
+            button.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>`;
+            button.title = 'פזר חלקים חופשיים';
 
             button.addEventListener('click', shuffleFreePieces);
             document.body.appendChild(button);
         }
 
-        // פונקציה לפיזור החלקים החופשיים
         function shuffleFreePieces() {
             puzzlePieces.forEach(piece => {
                 if (!piece.isPlaced) {
-                    // שימוש בלוגיקת הפיזור המקורית שלך
                     let randomPosition = Math.random();
-                    const gameWidth = canvas.width * 0.8;  // 80% מרוחב הקנבס
-                    const gameHeight = canvas.height * 0.8; // 80% מגובה הקנבס
-                    const startX = canvas.width * 0.1;     // 10% מהשוליים
-                    const startY = canvas.height * 0.1;    // 10% מהשוליים
+                    const gameWidth = canvas.width * 0.8;
+                    const gameHeight = canvas.height * 0.8;
+                    const startX = canvas.width * 0.1;
+                    const startY = canvas.height * 0.1;
 
                     if (randomPosition < 0.25) {
                         piece.x = startX + Math.random() * (gameWidth - piece.width);
@@ -1422,7 +1803,6 @@
                         piece.y = startY + Math.random() * (gameHeight - piece.height);
                     }
 
-                    // הגדרת z-index גבוה לחלקים החופשיים
                     piece.zIndex = 1000;
                 }
             });
@@ -1431,20 +1811,17 @@
         }
 
         function checkPuzzleCompletion() {
-			// אם הפאזל כבר הושלם, לא צריך להמשיך
 			if (isPuzzleCompleted) return;
-			
-			// בדיקה אם כל החלקים במקום
+
 			const allPlaced = puzzlePieces.every(piece => piece.isPlaced);
-			
+
 			if (allPlaced) {
-				isPuzzleCompleted = true; // סימון שהפאזל הושלם
+				isPuzzleCompleted = true;
 				createCompletionEffect();
 			}
 		}
 
         function createCompletionEffect() {
-			// יצירת שכבת אפקט
 			const effectLayer = document.createElement('div');
 			effectLayer.style.cssText = `
 				position: fixed;
@@ -1452,7 +1829,7 @@
 				left: 0;
 				width: 100%;
 				height: 100%;
-				background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+				background: radial-gradient(circle, rgba(102,126,234,0.3) 0%, rgba(0,0,0,0) 70%);
 				pointer-events: none;
 				opacity: 0;
 				transition: opacity 0.5s ease;
@@ -1460,33 +1837,36 @@
 			`;
 			document.body.appendChild(effectLayer);
 
-			// אנימציית זוהר
 			setTimeout(() => {
 				effectLayer.style.opacity = '1';
-				
-				// יצירת קונפטי
+
 				createConfetti();
-				
-				// הצגת הודעת סיום
+
 				const completionMessage = document.createElement('div');
 				completionMessage.style.cssText = `
 					position: fixed;
 					top: 50%;
 					left: 50%;
 					transform: translate(-50%, -50%);
-					background: rgba(0, 0, 0, 0.8);
+					background: rgba(15, 12, 41, 0.85);
+					backdrop-filter: blur(20px);
+					-webkit-backdrop-filter: blur(20px);
 					color: white;
-					padding: 20px 40px;
-					border-radius: 10px;
-					font-size: 24px;
+					padding: 30px 50px;
+					border-radius: 20px;
+					font-size: 26px;
 					text-align: center;
 					z-index: 10000;
 					animation: messagePopIn 0.5s ease forwards;
+					border: 1px solid rgba(255,255,255,0.15);
+					box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
 				`;
-				completionMessage.textContent = 'כל הכבוד! השלמת את הפאזל! 🎉';
+				completionMessage.innerHTML = `
+					<div style="font-size: 48px; margin-bottom: 12px;">🧩</div>
+					<div>כל הכבוד! השלמת את הפאזל!</div>
+				`;
 				document.body.appendChild(completionMessage);
 
-				// הסרת האפקטים אחרי 3 שניות
 				setTimeout(() => {
 					toggleTimer();
 					effectLayer.style.opacity = '0';
@@ -1513,7 +1893,7 @@
             const cCtx = confettiCanvas.getContext('2d');
             cCtx.scale(dpr, dpr);
 
-            const colors = ['#ff0', '#f0f', '#0ff', '#0f0', '#f90', '#f44'];
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#48bb78', '#f6d365'];
             const particles = Array.from({length: 80}, () => ({
                 x: Math.random() * window.innerWidth,
                 y: -20 - Math.random() * 100,
@@ -1583,13 +1963,13 @@
             }
 
             @keyframes messagePopIn {
-                0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
                 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
             }
 
             @keyframes messagePopOut {
                 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-                100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
