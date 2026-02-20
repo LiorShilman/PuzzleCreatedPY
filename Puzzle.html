@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>יוצר פאזלים</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #3498db;
+            --container-bg: #2d2d2d;
+            --border-color: #404040;
+            --glow-color: rgba(52, 152, 219, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: minmax(280px, 380px) 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .settings-panel {
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-panel {
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 10px;
+        }
+
+        h2,
+        h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-color);
+        }
+
+        button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            /* שינוי ליישור ימין */
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: var(--bg-color);
+            border-radius: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-left: 10px;
+            /* שינוי מ-margin-right ל-margin-left */
+        }
+
+
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .preview-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            background: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #puzzleCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .piece-container {
+            position: absolute;
+            cursor: grab;
+            transform-origin: center;
+            transition: transform 0.2s ease;
+        }
+
+        .piece-container.dragging {
+            cursor: grabbing;
+            z-index: 1000;
+            animation: piece-glow 2s infinite;
+            filter: drop-shadow(0 0 10px var(--glow-color));
+        }
+
+        @keyframes piece-glow {
+            0% {
+                filter: drop-shadow(0 0 10px var(--glow-color));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 20px var(--glow-color)) brightness(1.2);
+            }
+
+            100% {
+                filter: drop-shadow(0 0 10px var(--glow-color));
+            }
+        }
+
+        .pieces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            height: 150px;
+            overflow-y: auto;
+        }
+
+        .piece-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.2s ease;
+        }
+
+        #status {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #status.show {
+            opacity: 1;
+        }
+		
+		.puzzle-counter {
+			position: fixed;
+			top: 20px;
+			right: 20px;
+			background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
+			color: white;
+			padding: 15px 25px;
+			border-radius: 15px;
+			font-size: 18px;
+			font-weight: bold;
+			text-align: center;
+			transition: all 0.3s ease;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			z-index: 1000;
+			direction: rtl;
+		}
+
+		.puzzle-counter.pulse {
+			animation: counterPulse 0.3s ease;
+		}
+
+		@keyframes counterPulse {
+			0% { transform: scale(1); }
+			50% { transform: scale(1.1); }
+			100% { transform: scale(1); }
+		}
+
+	
+
+		/* סגנון לשעון המשחק */
+		.game-timer {
+		  position: absolute;
+		  //top: 20px;
+		  //right: 20px;
+		  background: rgba(30, 30, 30, 0.85);
+		  padding: 10px 15px;
+		  border-radius: 8px;
+		  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+		  backdrop-filter: blur(5px);
+		  display: flex;
+		  flex-direction: row; /* שינוי לשורה אופקית */
+		  align-items: center;
+		  gap: 10px;
+		  z-index: 1000;
+		  border: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.game-timer .timer-display {
+		  font-family: monospace;
+		  font-size: 24px;
+		  font-weight: bold;
+		  color: #e2e8f0;
+		  margin: 0;
+		}
+
+		.game-timer .timer-controls {
+		  display: flex;
+		  gap: 8px;
+		}
+
+		.game-timer .timer-btn {
+		  background: rgba(255, 255, 255, 0.1);
+		  border: none;
+		  cursor: pointer;
+		  padding: 6px;
+		  border-radius: 50%;
+		  transition: all 0.2s ease;
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		}
+
+		.game-timer .timer-btn:hover {
+		  background: rgba(255, 255, 255, 0.2);
+		}
+
+		.game-timer .timer-btn svg {
+		  width: 20px;
+		  height: 20px;
+		  fill: #e2e8f0;
+		}
+		
+		#startPauseBtn {
+			margin-bottom: 0px;
+		}
+
+		#resetBtn {
+			margin-bottom: 0px;
+		}
+
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="settings-panel">
+            <div class="section">
+                <h2>הגדרות פאזל</h2>
+                <div class="input-group">
+                    <label>העלאת תמונה:</label>
+                    <input type="file" id="imageUpload" accept="image/*" />
+                </div>
+
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="puzzleType" value="simple" checked>
+                        פאזל פשוט (מלבנים)
+                    </label>
+                    <label>
+                        <input type="radio" name="puzzleType" value="classic">
+                        פאזל קלאסי (צורות מסורתיות)
+                    </label>
+                </div>
+
+                <div class="mode-toggle">
+                    <label class="switch">
+                        <input type="checkbox" id="modeToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span>מצב מודרך (הצמדה אוטומטית)</span>
+                </div>
+
+                <div class="input-group">
+                    <label>מספר שורות:</label>
+                    <input type="number" id="rows" value="3" min="1" max="20">
+                </div>
+
+                <div class="input-group">
+                    <label>מספר עמודות:</label>
+                    <input type="number" id="cols" value="4" min="1" max="20">
+                </div>
+
+                <button onclick="handleCreatePuzzle()">צור פאזל</button>
+                <button onclick="handleDownloadPieces()">הורד חלקים</button>
+            </div>
+        </div>
+
+        <div class="preview-panel">
+            <div class="section">
+                <h2>תצוגה מקדימה</h2>
+                <div class="preview-container">
+                    <img id="previewImage" class="preview-image">
+                </div>
+            </div>
+
+            <div class="section canvas-section">
+                <h2>אזור המשחק</h2>
+                <div class="canvas-container">
+					<div class="game-timer">
+						<div class="timer-display" id="timerDisplay">00:00:00</div>
+						
+						<div class="timer-controls">
+						  <button class="timer-btn play-btn" id="startPauseBtn" title="התחל/השהה">
+							<svg viewBox="0 0 24 24" class="play-icon">
+							  <path d="M8 5v14l11-7z"/>
+							</svg>
+							<svg viewBox="0 0 24 24" class="pause-icon" style="display: none;">
+							  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+							</svg>
+						  </button>
+						  
+						  <button class="timer-btn reset-btn" id="resetBtn" title="אפס">
+							<svg viewBox="0 0 24 24">
+							  <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+							</svg>
+						  </button>
+						</div>
+					  </div>
+
+                    <canvas id="puzzleCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+		
+		<!-- הוספת המונה -->
+		<div class="puzzle-counter"></div>
+	
+    </div>
+
+    <div id="status"></div>
+
+    <script>
+        let originalImage = null;
+        let puzzlePieces = [];
+        let canvas;
+        let ctx;
+        let isDragging = false;
+        let currentPiece = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let piecePositions = [];
+        let gridSize = { rows: 0, cols: 0 };
+        let isGuidedMode = true;
+        let edgeTypes = null;
+        let completedPieces = 0;
+        // משתנה גלובלי לשליטה בהודעות סטטוס
+        let statusTimeout = null;
+		// משתנה גלובלי לסימון האם הפאזל הושלם
+		let isPuzzleCompleted = false;
+		let startTime;
+		let timerInterval;
+		let isRunning = false;
+		let elapsedTime = 0;
+
+		const snapDistance = 30;
+		// הוספת הפונקציות למונה
+		let puzzleCounter = null;
+		let totalPiecesCount = 0;
+		// הוספת משתנה גלובלי לניהול z-index
+		let currentMaxZIndex = 1000;
+
+        document.addEventListener('DOMContentLoaded', initialize);
+		
+		const timerDisplay = document.getElementById('timerDisplay');
+		const startPauseBtn = document.getElementById('startPauseBtn');
+		const resetBtn = document.getElementById('resetBtn');
+		const playIcon = startPauseBtn.querySelector('.play-icon');
+		const pauseIcon = startPauseBtn.querySelector('.pause-icon');
+
+		function formatTime(totalSeconds) {
+		  const hours = Math.floor(totalSeconds / 3600);
+		  const minutes = Math.floor((totalSeconds % 3600) / 60);
+		  const seconds = totalSeconds % 60;
+		  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+		}
+
+		function updateTimer() {
+		  const currentTime = Math.floor((Date.now() - startTime) / 1000) + elapsedTime;
+		  timerDisplay.textContent = formatTime(currentTime);
+		}
+
+		function toggleTimer() {
+		  if (!isRunning) {
+			startTime = Date.now();
+			timerInterval = setInterval(updateTimer, 1000);
+			playIcon.style.display = 'none';
+			pauseIcon.style.display = 'block';
+		  } else {
+			clearInterval(timerInterval);
+			elapsedTime += Math.floor((Date.now() - startTime) / 1000);
+			playIcon.style.display = 'block';
+			pauseIcon.style.display = 'none';
+		  }
+		  isRunning = !isRunning;
+		}
+
+		function resetTimer() {
+		  clearInterval(timerInterval);
+		  isRunning = false;
+		  elapsedTime = 0;
+		  timerDisplay.textContent = '00:00:00';
+		  playIcon.style.display = 'block';
+		  pauseIcon.style.display = 'none';
+		}
+
+		startPauseBtn.addEventListener('click', toggleTimer);
+		resetBtn.addEventListener('click', resetTimer);
+
+		// Initialize timer display
+		resetTimer();
+
+		function initializePuzzleCounter(rows, cols) {
+			totalPiecesCount = rows * cols;
+		
+			// הסרת המונה הקודם אם קיים
+			const existingCounter = document.querySelector('.puzzle-counter');
+			if (existingCounter) {
+				existingCounter.remove();
+			}
+			
+			// יצירת מונה חדש
+			puzzleCounter = document.createElement('div');
+			puzzleCounter.className = 'puzzle-counter';
+			document.body.appendChild(puzzleCounter);
+			
+			// אתחול מחדש של המונה עם הערך ההתחלתי
+			puzzleCounter.style.transform = 'scale(1)';
+			puzzleCounter.style.opacity = '1';
+			updatePuzzleCounter(totalPiecesCount);
+		}
+
+		function updatePuzzleCounter(remainingPieces) {
+			if (!puzzleCounter) return;
+
+			puzzleCounter.innerHTML = `
+				<div style="font-size: 24px; margin-bottom: 5px;">${remainingPieces}</div>
+				<div style="font-size: 14px;">חלקים נותרו</div>
+			`;
+
+			// הוספת אפקט הבהוב
+			puzzleCounter.classList.add('pulse');
+			setTimeout(() => puzzleCounter.classList.remove('pulse'), 300);
+
+			// שינוי צבע לפי התקדמות
+			const progress = (totalPiecesCount - remainingPieces) / totalPiecesCount;
+			const hue = progress * 120;
+			puzzleCounter.style.background = `linear-gradient(145deg, 
+				hsla(${hue}, 70%, 30%, 0.9),
+				hsla(${hue}, 70%, 40%, 0.9)
+			)`;
+
+			// הסתרה בסיום
+			if (remainingPieces === 0) {
+				setTimeout(() => {
+					puzzleCounter.style.transform = 'scale(0)';
+					puzzleCounter.style.opacity = '0';
+				}, 1500);
+			}
+		}
+
+		function isNearCorrectPosition(piece, pos) {
+			if (!pos) return false;
+			
+			const distance = Math.sqrt(
+				Math.pow(piece.x - pos.x, 2) + 
+				Math.pow(piece.y - pos.y, 2)
+			);
+
+			return distance < snapDistance; // snapDistance צריך להיות מוגדר במקום מתאים
+		}
+
+
+        function initialize() {
+            canvas = document.getElementById('puzzleCanvas');
+            ctx = canvas.getContext('2d');
+
+            // מאזיני אירועים
+            document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+            document.getElementById('modeToggle').addEventListener('change', (e) => {
+                isGuidedMode = e.target.checked;
+                showStatus(isGuidedMode ? 'מצב מודרך מופעל' : 'מצב חופשי מופעל');
+            });
+
+            window.addEventListener('resize', updateCanvasSize);
+            setupCanvasInteraction();
+        }
+
+        function setupCanvasInteraction() {
+			// Mouse events
+			canvas.addEventListener('mousedown', startDragging);
+			canvas.addEventListener('mousemove', dragPiece);
+			canvas.addEventListener('mouseup', stopDragging);
+			canvas.addEventListener('mouseleave', stopDragging);
+
+			// Touch events
+			canvas.addEventListener('touchstart', startDragging);
+			canvas.addEventListener('touchmove', dragPiece);
+			canvas.addEventListener('touchend', stopDragging);
+		}
+
+		function getEventCoordinates(e) {
+			// Check if it's a touch event
+			if (e.touches && e.touches.length > 0) {
+				return {
+					x: e.touches[0].clientX,
+					y: e.touches[0].clientY
+				};
+			}
+			// If not, use mouse event coordinates
+			return {
+				x: e.clientX,
+				y: e.clientY
+			};
+		}
+
+        function startDragging(e) {
+			e.preventDefault(); // Prevents unintended behavior on touch devices
+			const rect = canvas.getBoundingClientRect();
+			const coords = getEventCoordinates(e);
+			const x = coords.x - rect.left;
+			const y = coords.y - rect.top;
+
+			// Check if a piece was clicked/touched
+			for (let i = puzzlePieces.length - 1; i >= 0; i--) {
+				const piece = puzzlePieces[i];
+				if (isPointInPiece(x, y, piece)) {
+					isDragging = true;
+					currentPiece = piece;
+					offsetX = x - piece.x;
+					offsetY = y - piece.y;
+					piece.isDragging = true;
+
+					// Bring the selected piece to the front
+					puzzlePieces.splice(i, 1);
+					puzzlePieces.push(piece);
+
+					drawPuzzle();
+					break;
+				}
+			}
+		}
+
+        function dragPiece(e) {
+			if (!isDragging || !currentPiece) return;
+			e.preventDefault(); // Prevent scrolling on touch devices
+
+			const rect = canvas.getBoundingClientRect();
+			const coords = getEventCoordinates(e);
+			const x = coords.x - rect.left;
+			const y = coords.y - rect.top;
+
+			currentPiece.x = x - offsetX;
+			currentPiece.y = y - offsetY;
+
+			if (isGuidedMode) {
+				// Check proximity to correct position
+				const correctPos = piecePositions[currentPiece.index];
+				const distance = Math.hypot(
+					currentPiece.x - correctPos.x,
+					currentPiece.y - correctPos.y
+				);
+
+				if (distance < 30) { // Snap distance
+					currentPiece.x = correctPos.x;
+					currentPiece.y = correctPos.y;
+					currentPiece.isPlaced = true;
+
+					// Update the counter
+					const placedPieces = puzzlePieces.filter(p => p.isPlaced).length;
+					const remaining = totalPiecesCount - placedPieces;
+					updatePuzzleCounter(remaining);
+				}
+			}
+
+			drawPuzzle();
+		}
+				
+		
+
+        function stopDragging() {
+			if (currentPiece) {
+				currentPiece.isDragging = false;
+				if (currentPiece.isPlaced) {
+					showStatus('החלק הונח במקום הנכון!');
+					checkPuzzleCompletion();
+				}
+			}
+			isDragging = false;
+			currentPiece = null;
+			drawPuzzle();
+		}
+
+        // פונקציית עזר לבדיקה אם נקודה נמצאת בתוך חלק
+		function isPointInPiece(x, y, piece) {
+			return x >= piece.x && 
+				   x <= piece.x + piece.width && 
+				   y >= piece.y && 
+				   y <= piece.y + piece.height;
+		}
+
+		
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    originalImage = img;
+                    document.getElementById('previewImage').src = event.target.result;
+                    updateCanvasSize();
+                    drawPreview();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleCreatePuzzle() {
+            if (!originalImage) {
+                showStatus('נא להעלות תמונה תחילה');
+                return;
+            }
+
+            const rows = parseInt(document.getElementById('rows').value);
+            const cols = parseInt(document.getElementById('cols').value);
+            const puzzleType = document.querySelector('input[name="puzzleType"]:checked').value;
+
+            gridSize = { rows, cols };
+            createPuzzle(rows, cols, puzzleType);
+            showStatus('הפאזל נוצר! גרור את החלקים למקומם');
+        }
+
+        // ציור תצוגה מקדימה
+        function drawPreview() {
+            if (!originalImage) return;
+
+            const ratio = Math.min(
+                canvas.width / originalImage.width,
+                canvas.height / originalImage.height
+            );
+
+            const newWidth = originalImage.width * ratio;
+            const newHeight = originalImage.height * ratio;
+            const x = (canvas.width - newWidth) / 2;
+            const y = (canvas.height - newHeight) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, x, y, newWidth, newHeight);
+        }
+
+        function createPuzzle(rows, cols, type) {
+            // איפוס
+            puzzlePieces = [];
+            piecePositions = [];
+			edgeTypes = null;
+
+			// איפוס המשתנה בתחילת פאזל חדש
+			isPuzzleCompleted = false;
+	
+			// הוספת אתחול המונה
+			initializePuzzleCounter(rows, cols);
+	
+            // חישוב גדלים
+            const ratio = Math.min(
+                canvas.width / originalImage.width,
+                canvas.height / originalImage.height
+            );
+            const gameWidth = originalImage.width * ratio;
+            const gameHeight = originalImage.height * ratio;
+            const pieceWidth = gameWidth / cols;
+            const pieceHeight = gameHeight / rows;
+            const startX = (canvas.width - gameWidth) / 2;
+            const startY = (canvas.height - gameHeight) / 2;
+
+            // יצירת החלקים
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    // חישוב המיקום המקורי בתמונה
+                    const srcX = col * (originalImage.width / cols);
+                    const srcY = row * (originalImage.height / rows);
+
+                    // חישוב המיקום הסופי
+                    const finalX = startX + (col * pieceWidth);
+                    const finalY = startY + (row * pieceHeight);
+
+                    // שמירת המיקום הנכון
+                    piecePositions.push({
+                        x: finalX,
+                        y: finalY,
+                        row: row,
+                        col: col
+                    });
+
+                    // יצירת חלק חדש
+                    const piece = {
+                        index: row * cols + col,
+                        srcX: srcX,
+                        srcY: srcY,
+                        width: pieceWidth,
+                        height: pieceHeight,
+                        isPlaced: false,
+                        isDragging: false
+                    };
+
+                    // קביעת מיקום רנדומלי רק מסביב לתמונה המוצגת, תוך שמירה על החלקים בתוך המסגרת
+                    let randomPosition = Math.random();
+                    if (randomPosition < 0.25) {
+                        // מעל התמונה, לוודא שהחלק נשאר במסגרת הקנבס
+                        piece.x = startX + Math.random() * (gameWidth - piece.width);
+                        piece.y = Math.max(0, startY - piece.height - Math.random() * (startY - piece.height));
+                    } else if (randomPosition < 0.5) {
+                        // מתחת לתמונה, לוודא שהחלק נשאר במסגרת הקנבס
+                        piece.x = startX + Math.random() * (gameWidth - piece.width);
+                        piece.y = Math.min(canvas.height - piece.height, startY + gameHeight + Math.random() * (canvas.height - (startY + gameHeight) - piece.height));
+                    } else if (randomPosition < 0.75) {
+                        // מצד שמאל של התמונה, לוודא שהחלק נשאר במסגרת הקנבס
+                        piece.x = Math.max(0, startX - piece.width - Math.random() * (startX - piece.width));
+                        piece.y = startY + Math.random() * (gameHeight - piece.height);
+                    } else {
+                        // מצד ימין של התמונה, לוודא שהחלק נשאר במסגרת הקנבס
+                        piece.x = Math.min(canvas.width - piece.width, startX + gameWidth + Math.random() * (canvas.width - (startX + gameWidth) - piece.width));
+                        piece.y = startY + Math.random() * (gameHeight - piece.height);
+                    }
+
+
+                    if (type === 'classic') {
+                        piece.edges = generateClassicEdges(row, col, rows, cols);
+                    }
+
+                    puzzlePieces.push(piece);
+                }
+            }
+
+
+            // הוספת כפתור הפיזור
+            addShuffleButton();
+
+            drawPuzzle();
+			
+			toggleTimer();
+        }
+
+        function generateClassicEdges(row, col, rows, cols) {
+            // אתחול מערך החיבורים בתחילת פאזל חדש
+            if (!edgeTypes) {
+                edgeTypes = Array(rows).fill().map(() => Array(cols).fill().map(() => ({})));
+            }
+
+            const edges = {};
+
+            // קביעת החיבורים באופן שמונע חיבורים כפולים
+            if (row === 0) {
+                edges.top = 'none';
+            } else {
+                edges.top = edgeTypes[row - 1][col].bottom === 'tab' ? 'blank' : 'tab';
+            }
+
+            if (col === 0) {
+                edges.left = 'none';
+            } else {
+                edges.left = edgeTypes[row][col - 1].right === 'tab' ? 'blank' : 'tab';
+            }
+
+            if (row === rows - 1) {
+                edges.bottom = 'none';
+            } else {
+                edges.bottom = ((row + col) % 2 === 0) ? 'blank' : 'tab';
+            }
+
+            if (col === cols - 1) {
+                edges.right = 'none';
+            } else {
+                edges.right = ((row + col) % 2 === 0) ? 'tab' : 'blank';
+            }
+
+            // שמירת החיבורים למען החלקים הבאים
+            edgeTypes[row][col] = edges;
+
+            return edges;
+        }
+
+        function drawPuzzle() {
+		
+			if (!originalImage) return;
+		
+			// ניקוי הקנבס
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			// חישוב היחס לתמונת הרקע
+			const ratio = Math.min(
+				canvas.width / originalImage.width,
+				canvas.height / originalImage.height
+			);
+
+			// ציור התמונה המקורית ברקע עם שקיפות
+			ctx.save();
+			ctx.globalAlpha = 0.1; // שקיפות של 10%
+			const bgWidth = originalImage.width * ratio;
+			const bgHeight = originalImage.height * ratio;
+			const bgX = (canvas.width - bgWidth) / 2;
+			const bgY = (canvas.height - bgHeight) / 2;
+			
+			ctx.drawImage(
+				originalImage,
+				bgX, bgY,
+				bgWidth, bgHeight
+			);
+			ctx.globalAlpha = 1;
+			ctx.restore();
+
+			// יצירת מערכים נפרדים לחלקים מורכבים וחופשיים
+			const placedPieces = puzzlePieces.filter(piece => piece.isPlaced);
+			const freePieces = puzzlePieces.filter(piece => !piece.isPlaced);
+
+			// רק שינוי אחד כאן - הפיכת הסדר של החלקים החופשיים
+			placedPieces.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+			freePieces.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));  // שינוי כיוון המיון
+
+			// שאר הקוד נשאר בדיוק אותו דבר
+			if (placedPieces.length > 0) {
+				ctx.save();
+				ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+				ctx.shadowBlur = 15;
+				ctx.shadowOffsetX = 5;
+				ctx.shadowOffsetY = 5;
+
+				placedPieces.forEach(piece => {
+					if (!piece.isDragging) {
+						if (document.querySelector('input[name="puzzleType"]:checked').value === 'classic') {
+							drawClassicPiece(piece);
+						} else {
+							drawSimplePiece(piece);
+						}
+					}
+				});
+				ctx.restore();
+			}
+
+			freePieces.forEach(piece => {
+				ctx.save();
+				
+				if (!piece.isDragging) {
+					ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+					ctx.shadowBlur = 10;
+					ctx.shadowOffsetX = 3;
+					ctx.shadowOffsetY = 3;
+				}
+
+				if (piece.isDragging) {
+					ctx.shadowColor = 'rgba(52, 152, 219, 0.5)';
+					ctx.shadowBlur = 20;
+					ctx.shadowOffsetX = 0;
+					ctx.shadowOffsetY = 0;
+				}
+
+				if (document.querySelector('input[name="puzzleType"]:checked').value === 'classic') {
+					drawClassicPiece(piece);
+				} else {
+					drawSimplePiece(piece);
+				}
+				ctx.restore();
+
+				if (piece.isDragging && isGuidedMode) {
+					const nearbyPiece = findNearbyPiece(piece);
+					if (nearbyPiece) {
+						ctx.save();
+						ctx.strokeStyle = '#3498db';
+						ctx.lineWidth = 3;
+						ctx.setLineDash([5, 5]);
+						ctx.strokeRect(
+							nearbyPiece.x - 5,
+							nearbyPiece.y - 5,
+							nearbyPiece.width + 10,
+							nearbyPiece.height + 10
+						);
+						ctx.restore();
+					}
+				}
+			});
+
+			const draggingPiece = puzzlePieces.find(piece => piece.isDragging);
+			if (draggingPiece) {
+				ctx.save();
+				ctx.shadowColor = 'rgba(52, 152, 219, 0.5)';
+				ctx.shadowBlur = 20;
+				ctx.shadowOffsetX = 0;
+				ctx.shadowOffsetY = 0;
+
+				if (document.querySelector('input[name="puzzleType"]:checked').value === 'classic') {
+					drawClassicPiece(draggingPiece);
+				} else {
+					drawSimplePiece(draggingPiece);
+				}
+				ctx.restore();
+			}
+
+			if (placedPieces.length === puzzlePieces.length) {
+				checkPuzzleCompletion();
+			}
+
+			if (typeof updateRemainingPiecesCount === 'function') {
+				updateRemainingPiecesCount();
+			}
+		}
+
+        // עדכון טיפול בלחיצה על חלק
+        function handlePieceClick(event) {
+            const piece = findClickedPiece(event);
+            if (piece) {
+                piece.zIndex = Math.max(...puzzlePieces.map(p => p.zIndex || 0)) + 1;
+                piece.isDragging = true;
+                drawPuzzle();
+            }
+        }
+
+		// עדכון פונקציית מציאת החלק שנלחץ
+		function findClickedPiece(e) {
+			const rect = canvas.getBoundingClientRect();
+			const mouseX = e.clientX - rect.left;
+			const mouseY = e.clientY - rect.top;
+
+			 // סידור החלקים לפי z-index בסדר יורד
+			const sortedPieces = [...puzzlePieces]
+				.filter(piece => !piece.isPlaced)  // רק חלקים חופשיים
+				.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));  // מהגבוה לנמוך
+
+			// מחזיר את החלק העליון ביותר שנלחץ
+			return sortedPieces.find(piece => 
+				mouseX >= piece.x && 
+				mouseX <= piece.x + piece.width &&
+				mouseY >= piece.y && 
+				mouseY <= piece.y + piece.height
+			);
+		}
+
+        function drawGuideLines() {
+            const ratio = Math.min(
+                canvas.width / originalImage.width,
+                canvas.height / originalImage.height
+            );
+
+            const gameWidth = originalImage.width * ratio;
+            const gameHeight = originalImage.height * ratio;
+            const startX = (canvas.width - gameWidth) / 2;
+            const startY = (canvas.height - gameHeight) / 2;
+
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.2)';
+            ctx.lineWidth = 1;
+
+            // קווים אנכיים
+            for (let i = 0; i <= gridSize.cols; i++) {
+                const x = startX + (i * gameWidth / gridSize.cols);
+                ctx.beginPath();
+                ctx.moveTo(x, startY);
+                ctx.lineTo(x, startY + gameHeight);
+                ctx.stroke();
+            }
+
+            // קווים אופקיים
+            for (let i = 0; i <= gridSize.rows; i++) {
+                const y = startY + (i * gameHeight / gridSize.rows);
+                ctx.beginPath();
+                ctx.moveTo(startX, y);
+                ctx.lineTo(startX + gameWidth, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawPiece(piece) {
+            ctx.save();
+
+            // אפקטים לחלק נגרר
+            if (piece.isDragging) {
+                ctx.shadowColor = 'rgba(52, 152, 219, 0.5)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // ציור החלק עצמו
+            if (document.querySelector('input[name="puzzleType"]:checked').value === 'classic') {
+                drawClassicPiece(piece);
+            } else {
+                drawSimplePiece(piece);
+            }
+
+            ctx.restore();
+        }
+
+        function drawClassicPiece(piece) {
+            const tabSize = piece.width * 0.2;
+
+            ctx.beginPath();
+            ctx.moveTo(piece.x, piece.y);
+
+            // ציור הצד העליון
+            if (piece.edges.top === 'tab') {
+                drawTab(ctx,
+                    piece.x, piece.y,
+                    piece.x + piece.width, piece.y,
+                    tabSize, true
+                );
+            } else if (piece.edges.top === 'blank') {
+                drawTab(ctx,
+                    piece.x, piece.y,
+                    piece.x + piece.width, piece.y,
+                    tabSize, false
+                );
+            } else {
+                ctx.lineTo(piece.x + piece.width, piece.y);
+            }
+
+            // ציור הצד הימני
+            if (piece.edges.right === 'tab') {
+                drawTab(ctx,
+                    piece.x + piece.width, piece.y,
+                    piece.x + piece.width, piece.y + piece.height,
+                    tabSize, true
+                );
+            } else if (piece.edges.right === 'blank') {
+                drawTab(ctx,
+                    piece.x + piece.width, piece.y,
+                    piece.x + piece.width, piece.y + piece.height,
+                    tabSize, false
+                );
+            } else {
+                ctx.lineTo(piece.x + piece.width, piece.y + piece.height);
+            }
+
+            // ציור הצד התחתון
+            if (piece.edges.bottom === 'tab') {
+                drawTab(ctx,
+                    piece.x + piece.width, piece.y + piece.height,
+                    piece.x, piece.y + piece.height,
+                    tabSize, true
+                );
+            } else if (piece.edges.bottom === 'blank') {
+                drawTab(ctx,
+                    piece.x + piece.width, piece.y + piece.height,
+                    piece.x, piece.y + piece.height,
+                    tabSize, false
+                );
+            } else {
+                ctx.lineTo(piece.x, piece.y + piece.height);
+            }
+
+            // ציור הצד השמאלי
+            if (piece.edges.left === 'tab') {
+                drawTab(ctx,
+                    piece.x, piece.y + piece.height,
+                    piece.x, piece.y,
+                    tabSize, true
+                );
+            } else if (piece.edges.left === 'blank') {
+                drawTab(ctx,
+                    piece.x, piece.y + piece.height,
+                    piece.x, piece.y,
+                    tabSize, false
+                );
+            } else {
+                ctx.lineTo(piece.x, piece.y);
+            }
+
+            ctx.closePath();
+            ctx.save();
+            ctx.clip();
+
+            // חישוב גודל והיסט מתוקן לתמונה
+            const overlapRatio = 0.4; // הגדלת המרווח ל-40%
+
+            // חישוב מיקום וגודל בתמונה המקורית
+            const sourceWidth = originalImage.width / gridSize.cols;
+            const sourceHeight = originalImage.height / gridSize.rows;
+            const extraSource = Math.max(sourceWidth, sourceHeight) * overlapRatio;
+
+            // חישוב מיקום בתמונה המקורית עם תוספת שוליים ובדיקות גבולות
+            const srcX = Math.max(0, piece.srcX - extraSource);
+            const srcY = Math.max(0, piece.srcY - extraSource);
+            const srcWidth = Math.min(sourceWidth + extraSource * 2, originalImage.width - srcX);
+            const srcHeight = Math.min(sourceHeight + extraSource * 2, originalImage.height - srcY);
+
+            // חישוב היסט יעד יחסי בהתאם להיסט המקור
+            const destOffsetX = (piece.srcX - srcX) * (piece.width / sourceWidth);
+            const destOffsetY = (piece.srcY - srcY) * (piece.height / sourceHeight);
+
+            // חישוב מימדי היעד הסופיים
+            const destWidth = srcWidth * (piece.width / sourceWidth);
+            const destHeight = srcHeight * (piece.height / sourceHeight);
+
+            // ציור התמונה עם כל ההתאמות
+            ctx.drawImage(
+                originalImage,
+                srcX, srcY,
+                srcWidth, srcHeight,
+                piece.x - destOffsetX, piece.y - destOffsetY,
+                destWidth, destHeight
+            );
+
+            ctx.restore();
+
+            // ציור המסגרת
+            ctx.strokeStyle = piece.isDragging ? '#3498db' : '#2c3e50';
+            ctx.lineWidth = piece.isDragging ? 3 : 1;
+            ctx.stroke();
+        }
+
+        function drawTab(ctx, x1, y1, x2, y2, size, isTab) {
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            // בליטה חלקה יותר עם שיפור פרופורציות
+            const controlPoint = isTab ? size * 0.9 : -size * 0.9;
+            const depthRatio = 0.15;  // עומק החיתוך מותאם
+
+            // נקודת ביניים ראשונה
+            ctx.lineTo(
+                midX - Math.cos(angle) * (distance * depthRatio),
+                midY - Math.sin(angle) * (distance * depthRatio)
+            );
+
+            // עקומה מרכזית
+            ctx.quadraticCurveTo(
+                midX + Math.cos(angle + Math.PI / 2) * controlPoint,
+                midY + Math.sin(angle + Math.PI / 2) * controlPoint,
+                midX + Math.cos(angle) * (distance * depthRatio),
+                midY + Math.sin(angle) * (distance * depthRatio)
+            );
+
+            // המשך לנקודה הסופית
+            ctx.lineTo(x2, y2);
+        }
+
+
+        function determineEdgeType(row, col, edge) {
+            // אתחול המערך אם לא קיים
+            if (!edgeTypes) {
+                edgeTypes = Array(gridSize.rows).fill().map(() => Array(gridSize.cols).fill().map(() => ({})));
+            }
+
+            // אם כבר נקבע סוג החיבור, נשתמש בו
+            if (edgeTypes[row]?.[col]?.[edge]) {
+                return edgeTypes[row][col][edge];
+            }
+
+            let type;
+            switch (edge) {
+                case 'top':
+                    if (row === 0) return 'none';
+                    // הצד העליון יהיה הפוך מהצד התחתון של החלק שמעליו
+                    type = edgeTypes[row - 1]?.[col]?.bottom ?
+                        (edgeTypes[row - 1][col].bottom === 'tab' ? 'blank' : 'tab') :
+                        ((row + col) % 2 === 0 ? 'tab' : 'blank');
+                    break;
+
+                case 'right':
+                    if (col === gridSize.cols - 1) return 'none';
+                    // הצד הימני יקבע לפי המיקום
+                    type = (row + col) % 2 === 0 ? 'tab' : 'blank';
+                    break;
+
+                case 'bottom':
+                    if (row === gridSize.rows - 1) return 'none';
+                    // הצד התחתון יקבע לפי המיקום
+                    type = (row + col) % 2 !== 0 ? 'tab' : 'blank';
+                    break;
+
+                case 'left':
+                    if (col === 0) return 'none';
+                    // הצד השמאלי יהיה הפוך מהצד הימני של החלק משמאל
+                    type = edgeTypes[row]?.[col - 1]?.right ?
+                        (edgeTypes[row][col - 1].right === 'tab' ? 'blank' : 'tab') :
+                        ((row + col) % 2 !== 0 ? 'tab' : 'blank');
+                    break;
+            }
+
+            // שמירת הסוג שנקבע
+            if (!edgeTypes[row][col]) edgeTypes[row][col] = {};
+            edgeTypes[row][col][edge] = type;
+
+            return type;
+        }
+
+
+        function drawSimpleTab(ctx, x1, y1, x2, y2, size, isTab) {
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            // שיפור צורת הבליטה
+            const controlPoint = isTab ? size * 0.9 : -size * 0.9;
+            const depthRatio = 0.15; // הקטנת עומק החיבור
+
+            // נקודת התחלה
+            ctx.lineTo(
+                midX - Math.cos(angle) * (distance * depthRatio),
+                midY - Math.sin(angle) * (distance * depthRatio)
+            );
+
+            // בליטה חלקה יותר
+            ctx.quadraticCurveTo(
+                midX + Math.cos(angle + Math.PI / 2) * controlPoint,
+                midY + Math.sin(angle + Math.PI / 2) * controlPoint,
+                midX + Math.cos(angle) * (distance * depthRatio),
+                midY + Math.sin(angle) * (distance * depthRatio)
+            );
+
+            ctx.lineTo(x2, y2);
+        }
+
+
+
+        function drawSimplePiece(piece) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(piece.x, piece.y, piece.width, piece.height);
+            ctx.clip();
+
+            // ציור התמונה
+            ctx.drawImage(
+                originalImage,
+                piece.srcX, piece.srcY,
+                originalImage.width / gridSize.cols,
+                originalImage.height / gridSize.rows,
+                piece.x, piece.y,
+                piece.width, piece.height
+            );
+
+            ctx.restore();
+
+            // הוספת מסגרת (מחוץ ל-clip)
+            ctx.beginPath();
+            ctx.rect(piece.x, piece.y, piece.width, piece.height);
+            ctx.strokeStyle = piece.isDragging ? '#3498db' : '#2c3e50';
+            ctx.lineWidth = piece.isDragging ? 3 : 1;
+            ctx.stroke();
+        }
+
+        function updateCanvasSize() {
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            if (puzzlePieces.length > 0) {
+                drawPuzzle();
+            } else if (originalImage) {
+                drawPreview();
+            }
+        }
+
+        // נוסיף כפתור לפיזור מחדש של החלקים החופשיים
+        function addShuffleButton() {
+            const button = document.createElement('button');
+            button.textContent = 'פזר חלקים חופשיים';
+            button.className = 'shuffle-free-pieces';
+            button.style.cssText = `
+				position: fixed;
+				bottom: 20px;
+				right: 20px;
+				padding: 10px 20px;
+				background: #3498db;
+				color: white;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				z-index: 1000;
+			`;
+
+            button.addEventListener('click', shuffleFreePieces);
+            document.body.appendChild(button);
+        }
+
+        // פונקציה לפיזור החלקים החופשיים
+        function shuffleFreePieces() {
+            puzzlePieces.forEach(piece => {
+                if (!piece.isPlaced) {
+                    // שימוש בלוגיקת הפיזור המקורית שלך
+                    let randomPosition = Math.random();
+                    const gameWidth = canvas.width * 0.8;  // 80% מרוחב הקנבס
+                    const gameHeight = canvas.height * 0.8; // 80% מגובה הקנבס
+                    const startX = canvas.width * 0.1;     // 10% מהשוליים
+                    const startY = canvas.height * 0.1;    // 10% מהשוליים
+
+                    if (randomPosition < 0.25) {
+                        piece.x = startX + Math.random() * (gameWidth - piece.width);
+                        piece.y = Math.max(0, startY - piece.height - Math.random() * (startY - piece.height));
+                    } else if (randomPosition < 0.5) {
+                        piece.x = startX + Math.random() * (gameWidth - piece.width);
+                        piece.y = Math.min(canvas.height - piece.height, startY + gameHeight + Math.random() * (canvas.height - (startY + gameHeight) - piece.height));
+                    } else if (randomPosition < 0.75) {
+                        piece.x = Math.max(0, startX - piece.width - Math.random() * (startX - piece.width));
+                        piece.y = startY + Math.random() * (gameHeight - piece.height);
+                    } else {
+                        piece.x = Math.min(canvas.width - piece.width, startX + gameWidth + Math.random() * (canvas.width - (startX + gameWidth) - piece.width));
+                        piece.y = startY + Math.random() * (gameHeight - piece.height);
+                    }
+
+                    // הגדרת z-index גבוה לחלקים החופשיים
+                    piece.zIndex = 1000;
+                }
+            });
+
+            drawPuzzle();
+        }
+
+        function checkPuzzleCompletion() {
+			// אם הפאזל כבר הושלם, לא צריך להמשיך
+			if (isPuzzleCompleted) return;
+			
+			// בדיקה אם כל החלקים במקום
+			const allPlaced = puzzlePieces.every(piece => piece.isPlaced);
+			
+			if (allPlaced) {
+				isPuzzleCompleted = true; // סימון שהפאזל הושלם
+				createCompletionEffect();
+			}
+		}
+
+        function createCompletionEffect() {
+			// יצירת שכבת אפקט
+			const effectLayer = document.createElement('div');
+			effectLayer.style.cssText = `
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+				pointer-events: none;
+				opacity: 0;
+				transition: opacity 0.5s ease;
+				z-index: 9999;
+			`;
+			document.body.appendChild(effectLayer);
+
+			// אנימציית זוהר
+			setTimeout(() => {
+				effectLayer.style.opacity = '1';
+				
+				// יצירת קונפטי
+				createConfetti();
+				
+				// הצגת הודעת סיום
+				const completionMessage = document.createElement('div');
+				completionMessage.style.cssText = `
+					position: fixed;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					background: rgba(0, 0, 0, 0.8);
+					color: white;
+					padding: 20px 40px;
+					border-radius: 10px;
+					font-size: 24px;
+					text-align: center;
+					z-index: 10000;
+					animation: messagePopIn 0.5s ease forwards;
+				`;
+				completionMessage.textContent = 'כל הכבוד! השלמת את הפאזל! 🎉';
+				document.body.appendChild(completionMessage);
+
+				// הסרת האפקטים אחרי 3 שניות
+				setTimeout(() => {
+					toggleTimer();
+					effectLayer.style.opacity = '0';
+					completionMessage.style.animation = 'messagePopOut 0.5s ease forwards';
+					setTimeout(() => {
+						effectLayer.remove();
+						completionMessage.remove();
+						resetTimer();
+					}, 500);
+				}, 3000);
+			}, 100);
+		}
+
+        function createConfetti() {
+            const confettiCanvas = document.createElement('canvas');
+            confettiCanvas.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                pointer-events: none; z-index: 9999;
+            `;
+            const dpr = window.devicePixelRatio || 1;
+            confettiCanvas.width = window.innerWidth * dpr;
+            confettiCanvas.height = window.innerHeight * dpr;
+            document.body.appendChild(confettiCanvas);
+            const cCtx = confettiCanvas.getContext('2d');
+            cCtx.scale(dpr, dpr);
+
+            const colors = ['#ff0', '#f0f', '#0ff', '#0f0', '#f90', '#f44'];
+            const particles = Array.from({length: 80}, () => ({
+                x: Math.random() * window.innerWidth,
+                y: -20 - Math.random() * 100,
+                size: Math.random() * 8 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: Math.random() * 3 + 2,
+                wobble: Math.random() * 4 - 2,
+                rotation: Math.random() * 360,
+                rotSpeed: Math.random() * 10 - 5
+            }));
+
+            let frame;
+            const startTime = Date.now();
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                if (elapsed > 3000) {
+                    cancelAnimationFrame(frame);
+                    confettiCanvas.remove();
+                    return;
+                }
+                cCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                const fade = elapsed > 2500 ? 1 - (elapsed - 2500) / 500 : 1;
+                particles.forEach(p => {
+                    p.y += p.speed;
+                    p.x += p.wobble * Math.sin(p.y / 30);
+                    p.rotation += p.rotSpeed;
+                    cCtx.save();
+                    cCtx.globalAlpha = fade;
+                    cCtx.translate(p.x, p.y);
+                    cCtx.rotate(p.rotation * Math.PI / 180);
+                    cCtx.fillStyle = p.color;
+                    cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    cCtx.restore();
+                });
+                frame = requestAnimationFrame(animate);
+            }
+            frame = requestAnimationFrame(animate);
+        }
+
+
+        function showStatus(message, duration = 2000) {
+            if (statusTimeout) {
+                clearTimeout(statusTimeout);
+            }
+
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.classList.add('show');
+
+            statusTimeout = setTimeout(() => {
+                status.classList.remove('show');
+            }, duration);
+        }
+
+        // הוספת סטיילים לאנימציות
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes confettiFall {
+                0% {
+                    transform: translateY(0) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+
+            @keyframes messagePopIn {
+                0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            }
+
+            @keyframes messagePopOut {
+                0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+
+</html>

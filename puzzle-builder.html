@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>יוצר פאזלים</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #3498db;
+            --container-bg: #2d2d2d;
+            --border-color: #404040;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .settings-panel {
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-panel {
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 10px;
+        }
+
+        h2,
+        h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-color);
+        }
+
+        button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .radio-group {
+            margin-bottom: 15px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-left: 10px;
+        }
+
+        .preview-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .pieces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .piece-container {
+            aspect-ratio: 1;
+            background: var(--container-bg);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .piece-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #status {
+            color: var(--accent-color);
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #puzzleCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="settings-panel">
+            <div class="section">
+                <h2>הגדרות פאזל</h2>
+                <div class="input-group">
+                    <label>העלאת תמונה:</label>
+                    <input type="file" id="imageUpload" accept="image/*" />
+                </div>
+
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="puzzleType" value="simple" checked>
+                        פאזל פשוט (מלבנים)
+                    </label>
+                    <label>
+                        <input type="radio" name="puzzleType" value="classic">
+                        פאזל קלאסי (צורות מסורתיות)
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label>מספר שורות:</label>
+                    <input type="number" id="rows" value="3" min="1" max="10">
+                </div>
+
+                <div class="input-group">
+                    <label>מספר עמודות:</label>
+                    <input type="number" id="cols" value="4" min="1" max="10">
+                </div>
+
+                <button onclick="createPuzzle()">צור פאזל</button>
+                <button onclick="downloadPieces()">הורד חלקים</button>
+            </div>
+
+            <div id="status"></div>
+        </div>
+
+        <div class="preview-panel">
+            <div class="section">
+                <h2>תצוגה מקדימה</h2>
+                <div class="preview-container">
+                    <img id="previewImage" class="preview-image">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>חלקי הפאזל</h2>
+                <div class="canvas-container">
+                    <canvas id="puzzleCanvas"></canvas>
+                </div>
+                <div id="piecesGrid" class="pieces-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalImage = null;
+        let puzzlePieces = [];
+        const canvas = document.getElementById('puzzleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // טעינת תמונה
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        originalImage = img;
+                        document.getElementById('previewImage').src = event.target.result;
+                        updateCanvasSize();
+                        drawPreview();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // עדכון גודל הקנבס
+        function updateCanvasSize() {
+            if (!originalImage) return;
+
+            const container = canvas.parentElement;
+            const containerStyle = getComputedStyle(container);
+            const width = parseInt(containerStyle.width);
+            const height = parseInt(containerStyle.height);
+
+            canvas.width = width;
+            canvas.height = height;
+
+            drawPreview();
+        }
+
+        // ציור תצוגה מקדימה
+        function drawPreview() {
+            if (!originalImage) return;
+
+            const ratio = Math.min(
+                canvas.width / originalImage.width,
+                canvas.height / originalImage.height
+            );
+
+            const newWidth = originalImage.width * ratio;
+            const newHeight = originalImage.height * ratio;
+            const x = (canvas.width - newWidth) / 2;
+            const y = (canvas.height - newHeight) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, x, y, newWidth, newHeight);
+        }
+
+        // יצירת פאזל
+        function createPuzzle() {
+            if (!originalImage) {
+                setStatus('נא להעלות תמונה תחילה');
+                return;
+            }
+
+            const rows = parseInt(document.getElementById('rows').value);
+            const cols = parseInt(document.getElementById('cols').value);
+            const puzzleType = document.querySelector('input[name="puzzleType"]:checked').value;
+
+            if (rows < 1 || cols < 1) {
+                setStatus('נא להזין מספר חיובי של שורות ועמודות');
+                return;
+            }
+
+            // איפוס מערך החלקים
+            puzzlePieces = [];
+
+            // יצירת חלקי הפאזל
+            const pieceWidth = originalImage.width / cols;
+            const pieceHeight = originalImage.height / rows;
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const piece = createPuzzlePiece(row, col, pieceWidth, pieceHeight, puzzleType);
+                    puzzlePieces.push(piece);
+                }
+            }
+
+            // ציור הפאזל
+            drawPuzzlePreview();
+            createPiecesGrid();
+            setStatus('הפאזל נוצר בהצלחה!');
+        }
+
+        // יצירת חלק פאזל בודד
+        function createPuzzlePiece(row, col, width, height, type) {
+            const pieceCanvas = document.createElement('canvas');
+            pieceCanvas.width = width;
+            pieceCanvas.height = height;
+            const pieceCtx = pieceCanvas.getContext('2d');
+
+            // חיתוך החלק מהתמונה המקורית
+            pieceCtx.drawImage(
+                originalImage,
+                col * width,
+                row * height,
+                width,
+                height,
+                0,
+                0,
+                width,
+                height
+            );
+
+            if (type === 'classic') {
+                // הוספת צורת פאזל קלאסית
+                addClassicShape(pieceCtx, width, height);
+            } else {
+                // הוספת מסגרת למלבן
+                pieceCtx.strokeStyle = 'black';
+                pieceCtx.lineWidth = 2;
+                pieceCtx.strokeRect(0, 0, width, height);
+            }
+
+            return pieceCanvas.toDataURL();
+        }
+
+        // הוספת צורה קלאסית לחלק פאזל
+        function addClassicShape(ctx, width, height) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'black';
+            ctx.beginPath();
+
+            // יצירת בליטות והשקעים בצורה קלאסית
+            const tabSize = Math.min(width, height) * 0.2;
+
+            // צד עליון
+            ctx.moveTo(0, 0);
+            ctx.lineTo(width / 3, 0);
+            ctx.bezierCurveTo(
+                width / 2, -tabSize,
+                width / 2, tabSize,
+                width * 2 / 3, 0
+            );
+            ctx.lineTo(width, 0);
+
+            // צד ימין
+            ctx.lineTo(width, height / 3);
+            ctx.bezierCurveTo(
+                width + tabSize, height / 2,
+                width - tabSize, height / 2,
+                width, height * 2 / 3
+            );
+            ctx.lineTo(width, height);
+
+            // צד תחתון
+            ctx.lineTo(width * 2 / 3, height);
+            ctx.bezierCurveTo(
+                width / 2, height + tabSize,
+                width / 2, height - tabSize,
+                width / 3, height
+            );
+            ctx.lineTo(0, height);
+
+            // צד שמאל
+            ctx.lineTo(0, height * 2 / 3);
+            ctx.bezierCurveTo(
+                -tabSize, height / 2,
+                tabSize, height / 2,
+                0, height / 3
+            );
+            ctx.closePath();
+
+            ctx.stroke();
+            ctx.clip();
+        }
+
+        // ציור תצוגה מקדימה של הפאזל
+        function drawPuzzlePreview() {
+            if (!originalImage) return;
+
+            const gridRows = parseInt(document.getElementById('rows').value);
+            const gridCols = parseInt(document.getElementById('cols').value);
+
+            const ratio = Math.min(
+                canvas.width / originalImage.width,
+                canvas.height / originalImage.height
+            );
+
+            const newWidth = originalImage.width * ratio;
+            const newHeight = originalImage.height * ratio;
+            const x = (canvas.width - newWidth) / 2;
+            const y = (canvas.height - newHeight) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, x, y, newWidth, newHeight);
+
+            // ציור הקווים
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+
+            // קווים אנכיים
+            for (let i = 1; i < gridCols; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x + (newWidth * i / gridCols), y);
+                ctx.lineTo(x + (newWidth * i / gridCols), y + newHeight);
+                ctx.stroke();
+            }
+
+            // קווים אופקיים
+            for (let i = 1; i < gridRows; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x, y + (newHeight * i / gridRows));
+                ctx.lineTo(x + newWidth, y + (newHeight * i / gridRows));
+                ctx.stroke();
+            }
+        }
+
+        // יצירת רשת החלקים
+        function createPiecesGrid() {
+            const grid = document.getElementById('piecesGrid');
+            grid.innerHTML = '';
+
+            puzzlePieces.forEach((piece, index) => {
+                const container = document.createElement('div');
+                container.className = 'piece-container';
+
+                const img = document.createElement('img');
+                img.className = 'piece-image';
+                img.src = piece;
+                img.alt = `חלק ${index + 1}`;
+                img.draggable = true;
+
+                container.appendChild(img);
+                grid.appendChild(container);
+            });
+        }
+
+        // פונקציה להורדת החלקים
+        function downloadPieces() {
+            if (puzzlePieces.length === 0) {
+                setStatus('יש ליצור פאזל תחילה');
+                return;
+            }
+
+            // יצירת ZIP עם כל החלקים
+            const zip = new JSZip();
+            const folder = zip.folder("puzzle_pieces");
+
+            // הוספת כל החלקים
+            puzzlePieces.forEach((piece, index) => {
+                const data = piece.replace(/^data:image\/(png|jpg);base64,/, "");
+                folder.file(`piece_${index + 1}.png`, data, {
+                    base64: true
+                });
+            });
+
+            // הוספת תמונת המקור
+            if (originalImage) {
+                const tmpCanvas = document.createElement('canvas');
+                tmpCanvas.width = originalImage.width;
+                tmpCanvas.height = originalImage.height;
+                const tmpCtx = tmpCanvas.getContext('2d');
+                tmpCtx.drawImage(originalImage, 0, 0);
+                const originalData = tmpCanvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
+                folder.file("original.png", originalData, {
+                    base64: true
+                });
+            }
+
+            // יצירת והורדת הקובץ
+            zip.generateAsync({
+                type: "blob"
+            }).then(function(content) {
+                const url = URL.createObjectURL(content);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = "puzzle_pieces.zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        // עדכון הודעת סטטוס
+        function setStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+
+            setTimeout(() => {
+                if (status.textContent === message) {
+                    status.textContent = '';
+                }
+            }, 3000);
+        }
+
+        // התאמת גודל הקנבס בעת שינוי גודל החלון
+        window.addEventListener('resize', () => {
+            updateCanvasSize();
+        });
+
+        // טיפול בגרירת חלקים
+        let draggedPiece = null;
+
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('piece-image')) {
+                draggedPiece = e.target;
+                e.dataTransfer.setData('text/plain', '');
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedPiece) {
+                const puzzleCanvas = document.getElementById('puzzleCanvas');
+                const rect = puzzleCanvas.getBoundingClientRect();
+
+                if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const img = new Image();
+                    img.src = draggedPiece.src;
+                    img.onload = () => {
+                        ctx.drawImage(img, x - img.width / 2, y - img.height / 2);
+                    };
+                }
+                draggedPiece = null;
+            }
+        });
+
+        // טעינת ספריית JSZip
+        function loadScript(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
+            .then(() => {
+                console.log('JSZip loaded successfully');
+            })
+            .catch(err => {
+                console.error('Error loading JSZip:', err);
+                setStatus('שגיאה בטעינת ספריות נדרשות');
+            });
+
+    </script>
+</body>
+
+</html>
